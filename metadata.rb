@@ -1,0 +1,20 @@
+name             'askbot'
+maintainer       'Dimension Data Cloud Business Unit'
+maintainer_email 'eugene.narciso@itaas.dimensiondata.com'
+license          'All Rights Reserved'
+description      'Installs/Configures Q&A system askbot'
+long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
+version          '0.1.0'
+
+supports         'ubuntu'
+
+depends          'python'
+depends          'git'
+depends          'postgresql'
+depends          'apache2'
+depends          'logrotate'
+depends          'java'
+depends          'ark'
+depends          'database'
+depends          'solr'
+depends          'apt'

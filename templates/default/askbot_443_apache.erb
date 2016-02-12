@@ -1,0 +1,159 @@
+NameVirtualHost <%= node['ipaddress'] %>:443
+
+<VirtualHost <%= node['ipaddress'] %>:443>
+  ServerAdmin <%= node['askbot']['admins'] %>
+  DocumentRoot <%= node['askbot']['install']['dir'] %>
+  ServerName <%= node['fqdn'] %>
+
+  Alias /m/ <%= node['askbot']['install']['dir'] %>/static/
+  Alias /upfiles/ <%= node['askbot']['install']['dir'] %>/askbot/upfiles/
+  <DirectoryMatch "<%= node['askbot']['install']['dir'] %>/askbot/skins/([^/']+)/media">
+    Order deny,allow
+    Allow from all
+  </DirectoryMatch>
+    <Directory "<%= node['askbot']['install']['dir'] %>/askbot/upfiles">
+      Order deny,allow
+      Allow from all
+    </Directory>
+    <Directory "<%= node['askbot']['install']['dir'] %>/m/mathjax">
+      Order deny,allow
+      Allow from all
+    </Directory>
+
+  LogLevel debug
+  CustomLog <%= node['askbot']['install']['dir'] %>/log/apache2_access.log combined
+  ErrorLog <%= node['askbot']['install']['dir'] %>/log/apache2_error.log
+
+  SSLEngine on
+<% if ::File.exist? '/etc/ssl/certs/' + node[:fqdn] + '.crt' and ::File.exist? '/etc/ssl/private/' + node[:fqdn] + '.key' %>
+  SSLCertificateFile    /etc/ssl/certs/<%= node[:fqdn] %>.crt
+  SSLCertificateKeyFile /etc/ssl/private/<%= node[:fqdn] %>.key
+<% else %>
+  SSLCertificateFile    /etc/ssl/certs/ssl-cert-snakeoil.pem
+  SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+<% end %>
+
+  WSGIDaemonProcess root
+  WSGIProcessGroup root
+  WSGIScriptAlias / <%= node['askbot']['install']['dir'] %>/django.wsgi
+
+  <IfModule mod_headers.c>
+    <FilesMatch "\.(eot|font.css|otf|ttc|ttf|woff)$">
+      Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+  </IfModule>
+
+  <IfModule mod_headers.c>
+    Header set X-UA-Compatible "IE=edge,chrome=1"
+    <FilesMatch "\.(appcache|crx|css|eot|gif|htc|ico|jpe?g|js|m4a|m4v|manifest|mp4|oex|oga|ogg|ogv|otf|pdf|png|safariextz|svg|svgz|ttf|vcf|webapp|webm|webp|woff|xml|xpi)$">
+    Header unset X-UA-Compatible
+    </FilesMatch>
+  </IfModule>
+
+  <IfModule mod_mime.c>
+    AddType audio/mp4                                   m4a f4a f4b
+    AddType audio/ogg                                   oga ogg
+
+    AddType application/javascript                      js jsonp
+    AddType application/json                            json
+
+    AddType video/mp4                                   mp4 m4v f4v f4p
+    AddType video/ogg                                   ogv
+    AddType video/webm                                  webm
+    AddType video/x-flv                                 flv
+
+    AddType application/font-woff                       woff
+    AddType application/vnd.ms-fontobject               eot
+
+    AddType application/x-font-ttf                      ttc ttf
+    AddType font/opentype                               otf
+
+    AddType     image/svg+xml                           svg svgz
+    AddEncoding gzip                                    svgz
+
+    AddType application/octet-stream                    safariextz
+    AddType application/x-chrome-extension              crx
+    AddType application/x-opera-extension               oex
+    AddType application/x-shockwave-flash               swf
+    AddType application/x-web-app-manifest+json         webapp
+    AddType application/x-xpinstall                     xpi
+    AddType application/xml                             atom rdf rss xml
+    AddType image/webp                                  webp
+    AddType image/x-icon                                ico
+    AddType text/cache-manifest                         appcache manifest
+    AddType text/vtt                                    vtt
+    AddType text/x-component                            htc
+    AddType text/x-vcard                                vcf
+
+  </IfModule>
+
+AddDefaultCharset utf-8
+  <IfModule mod_mime.c>
+    AddCharset utf-8 .atom .css .js .json .rss .vtt .webapp .xml
+  </IfModule>
+
+    <IfModule mod_deflate.c>
+
+    <IfModule mod_setenvif.c>
+      <IfModule mod_headers.c>
+        SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+|[X~-]{4,13}$ HAVE_Accept-Encoding
+        RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+      </IfModule>
+    </IfModule>
+
+    <IfModule mod_filter.c>
+      AddOutputFilterByType DEFLATE application/atom+xml \
+                                    application/javascript \
+                                    application/json \
+                                    application/rss+xml \
+                                    application/vnd.ms-fontobject \
+                                    application/x-font-ttf \
+                                    application/x-web-app-manifest+json \
+                                    application/xhtml+xml \
+                                    application/xml \
+                                    font/opentype \
+                                    image/svg+xml \
+                                    image/x-icon \
+                                    text/css \
+                                    text/html \
+                                    text/plain \
+                                    text/x-component \
+                                    text/xml
+    </IfModule>
+
+  </IfModule>
+
+  <IfModule mod_headers.c>
+    Header unset ETag
+  </IfModule>
+
+FileETag None
+  <IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresDefault                                      "access plus 1 month"
+    ExpiresByType text/css                              "access plus 1 year"
+    ExpiresByType application/json                      "access plus 0 seconds"
+    ExpiresByType application/xml                       "access plus 0 seconds"
+    ExpiresByType text/xml                              "access plus 0 seconds"
+    ExpiresByType image/x-icon                          "access plus 1 week"
+    ExpiresByType text/x-component                      "access plus 1 month"
+    ExpiresByType text/html                             "access plus 0 seconds"
+    ExpiresByType application/javascript                "access plus 1 year"
+    ExpiresByType application/x-web-app-manifest+json   "access plus 0 seconds"
+    ExpiresByType text/cache-manifest                   "access plus 0 seconds"
+    ExpiresByType audio/ogg                             "access plus 1 month"
+    ExpiresByType image/gif                             "access plus 1 month"
+    ExpiresByType image/jpeg                            "access plus 1 month"
+    ExpiresByType image/png                             "access plus 1 month"
+    ExpiresByType video/mp4                             "access plus 1 month"
+    ExpiresByType video/ogg                             "access plus 1 month"
+    ExpiresByType video/webm                            "access plus 1 month"
+    ExpiresByType application/atom+xml                  "access plus 1 hour"
+    ExpiresByType application/rss+xml                   "access plus 1 hour"
+    ExpiresByType application/font-woff                 "access plus 1 month"
+    ExpiresByType application/vnd.ms-fontobject         "access plus 1 month"
+    ExpiresByType application/x-font-ttf                "access plus 1 month"
+    ExpiresByType font/opentype                         "access plus 1 month"
+    ExpiresByType image/svg+xml                         "access plus 1 month"
+  </IfModule>
+</VirtualHost>

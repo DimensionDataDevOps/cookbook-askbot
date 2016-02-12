@@ -1,0 +1,69 @@
+#WSGISocketPrefix <%= node['askbot']['install']['dir'] %>/run/socket/sock
+#WSGIPythonEggs <%= node['askbot']['install']['dir'] %>/run/python/eggs
+
+#WSGIPythonHome /usr/local
+
+<VirtualHost <%= node['ipaddress'] %>:80>
+     ServerAdmin <%= node['askbot']['admins'] %>
+     DocumentRoot <%= node['askbot']['install']['dir'] %>
+     ServerName <%= node['fqdn'] %>
+
+     Alias /m/ <%= node['askbot']['install']['dir'] %>/static/
+     Alias /upfiles/ <%= node['askbot']['install']['dir'] %>/askbot/upfiles/
+     <DirectoryMatch "<%= node['askbot']['install']['dir'] %>/askbot/skins/([^/']+)/media">
+        Order deny,allow
+        Allow from all
+     </DirectoryMatch>
+     <Directory "<%= node['askbot']['install']['dir'] %>/askbot/upfiles">
+        Order deny,allow
+        Allow from all
+     </Directory>
+
+     WSGIDaemonProcess root
+     WSGIProcessGroup root
+     WSGIScriptAlias / <%= node['askbot']['install']['dir'] %>/django.wsgi
+
+     #make all admin stuff except media go through secure connection
+     #<LocationMatch "/admin(?!/media)">
+     #  RewriteEngine on
+     #   RewriteRule /admin(.*)$ https'//example.com/admin$1 [L,R=301']
+     #</LocationMatch>
+     #CustomLog /var/log/httpd/askbot/access_log common
+     #ErrorLog /var/log/httpd/askbot/error_log
+     #LogLevel debug
+</VirtualHost>
+
+<VirtualHost <%= node['ipaddress'] %>:443>
+     ServerAdmin <%= node['askbot']['admins'] %>
+     DocumentRoot <%= node['askbot']['install']['dir'] %>
+     ServerName <%= node['fqdn'] %>
+
+     #<LocationMatch "^(?!/admin)">
+     #    RewriteEngine on
+     #    RewriteRule django.wsgi(.*)$ http'//example.com$1 [L,R=301']
+     #</LocationMatch>
+
+     SSLEngine on
+     SSLCertificateFile <%= node['askbot']['ssl']['pem'] %>
+     SSLCertificateKeyFile <%= node['askbot']['ssl']['key'] %>
+
+     Alias /admin/media/ /usr/local/lib/python2.7/dist-packages/django/contrib/admin/media/
+
+     WSGIScriptAlias / <%= node['askbot']['install']['dir'] %>/django.wsgi
+
+     CustomLog <%= node['askbot']['install']['dir'] %>/log//access_log common
+     ErrorLog <%= node['askbot']['install']['dir'] %>/log/error_log
+
+     Alias /m/ <%= node['askbot']['install']['dir'] %>/static/
+     Alias /upfiles/ <%= node['askbot']['install']['dir'] %>/askbot/upfiles/
+
+     <DirectoryMatch "<%= node['askbot']['install']['dir'] %>/askbot/skins/([^/']+)/media">
+        Order deny,allow
+        Allow from all
+     </DirectoryMatch>
+
+     <Directory "<%= node['askbot']['install']['dir'] %>/askbot/upfiles">
+        Order deny,allow
+        Allow from all
+     </Directory>
+</VirtualHost>
