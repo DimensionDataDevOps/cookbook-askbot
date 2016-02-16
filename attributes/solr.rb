@@ -22,6 +22,7 @@ default['askbot']['haystack']['enabled'] = nil
 
 # solr requirements
 default['askbot']['solr']['packages'] = ['python-dev', 'postgresql-server-dev-9.1', 'libldap2-dev', 'libsasl2-dev', 'memcached', 'libxml2-dev', 'libxslt-dev']
+default['askbot']['solr']['pip_pkgs'] = {"haystack" => "2.4.1", "pysolr" => "3.4.0", "lxml" => "3.5.0", "cssselect" => "0.9.1"}
 default['askbot']['solr']['version'] = '5.4.1'
 default['askbot']['solr']['checksum'] = '3e4b4ec7bd728b49b2ebc3dbe8f3d1ef89fded4ab86b9e2f856bedd58c99f28b'
 
@@ -29,6 +30,5 @@ default['askbot']['solr']['checksum'] = '3e4b4ec7bd728b49b2ebc3dbe8f3d1ef89fded4
 default['askbot']['solr']['url'] = "http://mirror.cogentco.com/pub/apache/lucene/solr/#{node['askbot']['solr']['version']}/solr-#{node['askbot']['solr']['version']}.tgz"
 
 # Default solr version and url
-default['askbot']['solr']['enabled'] = nil
-default['askbot']['solr']['serverip'] = 'localhost'
+default['askbot']['solr']['serverip'] = '127.0.0.1'
 default['askbot']['solr']['port'] = '8983'

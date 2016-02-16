@@ -1,7 +1,5 @@
-NameVirtualHost <%= node['ipaddress'] %>:443
-
 <VirtualHost <%= node['ipaddress'] %>:443>
-  ServerAdmin <%= node['askbot']['admins'] %>
+  ServerAdmin <%= node['askbot']['admins_email'] %>
   DocumentRoot <%= node['askbot']['install']['dir'] %>
   ServerName <%= node['fqdn'] %>
 
@@ -25,8 +23,8 @@ NameVirtualHost <%= node['ipaddress'] %>:443
     </Directory>
 
   LogLevel debug
-  CustomLog <%= node['askbot']['install']['dir'] %>/log/apache2_access.log combined
-  ErrorLog <%= node['askbot']['install']['dir'] %>/log/apache2_error.log
+  CustomLog /var/log/apache2/askbot_access.log combined
+  ErrorLog /var/log/apache2/askbot_error.log
 
   SSLEngine on
 <% if ::File.exist? '/etc/ssl/certs/' + node[:fqdn] + '.crt' and ::File.exist? '/etc/ssl/private/' + node[:fqdn] + '.key' %>

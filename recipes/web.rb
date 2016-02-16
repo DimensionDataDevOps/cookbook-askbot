@@ -27,6 +27,12 @@ include_recipe 'apache2::mod_mime'
 include_recipe 'apache2::mod_setenvif'
 include_recipe 'apache2::mod_headers'
 
+directory "/var/www" do
+  owner 'www-data'
+  group 'www-data'
+  mode 0777
+end
+
 # Loop through apache mods
 %w{ wsgi ssl rewrite deflate expires mime setenvif headers filter }.each do |mod|
   apache_module mod

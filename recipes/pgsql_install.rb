@@ -18,16 +18,8 @@
 #
 
 include_recipe 'askbot'
-include_recipe 'chef-vault'
 
-chef_gem 'chef-vault'
-require 'chef-vault'
-
-data_bag = node['askbot']['db']['data_bag']
-item_db = node['askbot']['db']['db_item']
-
-# Override PostgreSQL Cookbook attribute here to use
-node.override['postgresql']['password']['postgres'] = chef_vault_item(data_bag, 'postgresql')['passwordclear']
+node.override['postgresql']['password']['postgres'] = node['askbot']['db']['pgsql_passwd']
 node.override['postgresql']['config']['listen_addresses'] = '*'
 node.override['postgresql']['pg_hba'] = [
   {:comment => nil, :type => 'host', :db => 'all', :user => 'all', :addr => '0.0.0.0/0', :method => 'trust'},
@@ -38,14 +30,13 @@ node.override['postgresql']['pg_hba'] = [
   {:comment => '#"local" is for Unix domain socket connections only', :type => 'local', :db => 'all', :user => 'all', :addr => nil, :method => 'peer'}
 ]
 
-include_recipe 'postgresql'
 include_recipe 'postgresql::server'
 include_recipe 'database::postgresql'
 
 postgresql_connection_info = {
   :host => node['askbot']['db']['host'],
   :port => node['askbot']['db']['port'],
-  :password => node['postgresql']['password']['postgres']
+  :password => node['askbot']['db']['pgsql_passwd']
 }
 
 postgresql_database node['askbot']['db']['name'] do
@@ -56,7 +47,7 @@ end
 postgresql_database_user node['askbot']['db']['user'] do
   connection    postgresql_connection_info
   database_name node['askbot']['db']['name']
-  password      chef_vault_item(data_bag, item_db)['passwordclear']
+  password      node['askbot']['db']['askbot_passwd']
   action        :create
 end
 

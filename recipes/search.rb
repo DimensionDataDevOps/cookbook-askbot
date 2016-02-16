@@ -1,36 +1,41 @@
 #
 # Cookbook Name:: askbot
 # Recipe:: search
-# Author:: Eugene Narciso (<eugene.narciso@itaas.dimensiondata.com>)
 #
-# Copyright 2016, Dimension Data Cloud Buisness Unit
+# Copyright 2016, Dimension Data Cloud Solutions, Inc.
 #
-# All rights reserved - Do Not Redistribute
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 
-include_recipe 'solr'
-include_recipe 'python::pip'
+# Install only if haystack is set to true
+unless !node['askbot']['haystack']['enabled'].nil?
+  include_recipe 'askbot'
+  include_recipe 'solr'
+  include_recipe 'python::pip'
 
-node['askbot']['solr'['packages'].each do |pkg|
-  package pkg
-end
+  solr_instance_name = node['askbot']['environment']
+  solr_home = "/opt/solr/#{solr_instance_name}"
+  solr_schema = "#{solr_home}/conf/schema.xml"
+  solr_xml = "#{solr_home}/solr.xml"
+  solr_config = "#{solr_home}/conf/solrconfig.xml"
 
-solr_instance_name = node['askbot']['environment']
-solr_home = "/opt/solr/#{solr_instance_name}"
-solr_schema = "#{solr_home}/conf/schema.xml"
-solr_xml = "#{solr_home}/solr.xml"
-solr_config = "#{solr_home}/conf/solrconfig.xml"
+  node['askbot']['solr'['packages'].each do |pkg|
+    package pkg
+  end
 
-#Install solr related packages if solr == True
-if node['solr']['enabled']
-  #{"pysolr" => "3.1.0", "lxml" => "3.2.4", "cssselect" => "0.9.1"}.each do |pip,ver|
-  #  python_pip pip do
-  #    version ver
-  #    action :install
-	#  end
-  #end
-  ['pysolr', 'lxml', 'cssselect'].each do |pip|
+  node['askbot']['solr']['pip_pkgs'].each do |pip,ver|
     python_pip pip do
+      version ver
       action :install
     end
   end
@@ -63,13 +68,3 @@ if node['solr']['enabled']
     to "#{solr_home}/conf/stopwords.txt"
     #notifies :restart, "solr_instance[#{solr_instance_name}]", :immediately
   end
-end
-
-#Install haystack related packages if haystack == True
-if node['haystack']['enabled']
-  # Install django-haystack 2.1.0 (default)
-    python_pip "django-haystack" do
-      #version  "2.1.0"
-      action :install
-    end
-end

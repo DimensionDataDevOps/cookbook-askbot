@@ -17,5 +17,16 @@
 # limitations under the License.
 #
 
-node.override['apt']['compile_time_update'] = true 
-include_recipe 'apt'
+# Might have to switch this to a case loop to support platform_family? = rhel
+unless !node['platform_family'] == 'debian'
+  node.override['apt']['compile_time_update'] = true 
+  include_recipe 'apt'
+end
+
+include_recipe 'chef-vault'
+
+chef_gem 'chef-vault'
+require 'chef-vault'
+
+node.set['askbot']['db']['pgsql_passwd'] = chef_vault_item(node['askbot']['db']['data_bag'], 'postgresql')['passwordclear']
+node.set['askbot']['db']['askbot_passwd'] = chef_vault_item(node['askbot']['db']['data_bag'], node['askbot']['db']['db_item'])['passwordclear']

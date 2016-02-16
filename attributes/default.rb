@@ -24,14 +24,18 @@ default['askbot']['environment'] = 'askbot_testing'
 default['askbot']['admin_name'] = 'Askbot Admin'
 default['askbot']['admins_email'] = 'admin@domain.com'
 default['askbot']['from_email'] = node['askbot']['admins_email'] 
-default['askbot']['smtp'] = '127.0.0.1'
+
+default['askbot']['memcache']['host'] = '127.0.0.1'
+# SMTP config
+default['askbot']['smtp']['host'] = '127.0.0.1'
+default['askbot']['smtp']['user'] = nil
+default['askbot']['smtp']['passwd'] = nil
 
 # Hash of pip packages to install
 default['askbot']['pip']['packages'] = {
   "psycopg2" => "2.5.1",
   "python-ldap" => "2.4.25",
-  "python-memcached" => "1.57",
-  "longerusername" => "0.4"
+  "python-memcached" => "1.57"
 }
 
 # Default to clone from github.com and master branch
@@ -47,6 +51,8 @@ default['askbot']['db']['name'] = 'askbotdb'
 default['askbot']['db']['user'] = 'askbotusr'
 default['askbot']['db']['host'] = node['ipaddress']
 default['askbot']['db']['port'] = 5432
+default['askbot']['db']['askbot_passwd'] = nil
+default['askbot']['db']['pgsql_passwd'] = nil
 
 # Default Chef-Vault to retrieve Data Base creds
 default['askbot']['db']['data_bag'] = node['askbot']['db']['name']

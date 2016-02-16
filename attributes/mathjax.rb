@@ -19,7 +19,7 @@
 
 # Default value when deploying mathjax
 # Disabled by default
-default['mathjax']['enabled'] = nil
-default['mathjax']['git']['dir'] = '/opt/mathjax'
-default['mathjax']['git']['repository'] = 'https://github.com/mathjax/MathJax.git'
-default['mathjax']['git']['revision'] = '2.6.1' # Current stable release
+default['askbot']['mathjax']['enabled'] = nil
+default['askbot']['mathjax']['git']['dir'] = '/opt/mathjax'
+default['askbot']['mathjax']['git']['repository'] = 'https://github.com/mathjax/MathJax.git'
+default['askbot']['mathjax']['git']['revision'] = '2.6.1' # Current stable release

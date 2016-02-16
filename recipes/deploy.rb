@@ -1,11 +1,20 @@
 #
 # Cookbook Name:: askbot
 # Recipe:: deploy
-# Author:: Eugene Narciso (<eugene.narciso@itaas.dimensiondata.com>)
 #
-# Copyright 2016, Dimension Data Cloud Buisness Unit
+# Copyright 2016, Dimension Data Cloud Solutions, Inc.
 #
-# All rights reserved - Do Not Redistribute
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 
 include_recipe 'askbot'
@@ -73,15 +82,17 @@ deploy node['askbot']['git']['dir'] do
     template "#{node['askbot']['install']['dir']}/settings.py" do
       source 'settings.py.erb'
       variables({
-        :ADMIN_NAME => node['askbot']['admin_name']
-        :ADMIN_EMAIL => node['askbot']['admins_email']
-        :DB_NAME => node['askbot']['db']['name']
-        :DB_USR => node['askbot']['db']['user']
-        :DB_PASSWD => 
-        :DB_HOST =>
-        :DB_PORT =>
-        :SMTP_EMAIL =>
-        :SMTP_FRMAIL => node['askbot']['from_email']
+        :ADMIN_NAME => node['askbot']['admin_name'],
+        :ADMIN_EMAIL => node['askbot']['admins_email'],
+        :DB_NAME => node['askbot']['db']['name'],
+        :DB_USR => node['askbot']['db']['user'],
+        :DB_PASSWD => node['askbot']['db']['askbot_passwd'],
+        :DB_HOST => node['askbot']['db']['host'],
+        :DB_PORT => node['askbot']['db']['port'],
+        :SMTP_HOST => node['askbot']['smtp']['host'],
+        :SMTP_USR => node['askbot']['smtp']['user'],
+        :SMTP_PASSWD => node['askbot']['smtp']['passwd'],
+        :MEMCACHE_HOST => node['askbot']['memcache']['host']
       })
     end
 
