@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: askbot
-# Recipe:: default
+# Attributes:: mathjax
 #
 # Copyright 2016, Dimension Data Cloud Solutions, Inc.
 #
@@ -17,5 +17,9 @@
 # limitations under the License.
 #
 
-node.override['apt']['compile_time_update'] = true 
-include_recipe 'apt'
+# Default value when deploying mathjax
+# Disabled by default
+default['mathjax']['enabled'] = nil
+default['mathjax']['git']['dir'] = '/opt/mathjax'
+default['mathjax']['git']['repository'] = 'https://github.com/mathjax/MathJax.git'
+default['mathjax']['git']['revision'] = '2.6.1' # Current stable release

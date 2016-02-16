@@ -16,3 +16,5 @@ gem 'berkshelf'
 
 gem "test-kitchen"
 gem "kitchen-vagrant"
+gem "chef-provisioning-vsphere"
+gem "winrm-transport"

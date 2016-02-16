@@ -11,6 +11,10 @@ NameVirtualHost <%= node['ipaddress'] %>:443
     Order deny,allow
     Allow from all
   </DirectoryMatch>
+    <Directory "<%= node['askbot']['install']['dir'] %>">
+      Order deny,allow
+      Require all granted
+    </Directory>
     <Directory "<%= node['askbot']['install']['dir'] %>/askbot/upfiles">
       Order deny,allow
       Allow from all
@@ -32,7 +36,6 @@ NameVirtualHost <%= node['ipaddress'] %>:443
   SSLCertificateFile    /etc/ssl/certs/ssl-cert-snakeoil.pem
   SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
 <% end %>
-
   WSGIDaemonProcess root
   WSGIProcessGroup root
   WSGIScriptAlias / <%= node['askbot']['install']['dir'] %>/django.wsgi
@@ -51,56 +54,46 @@ NameVirtualHost <%= node['ipaddress'] %>:443
   </IfModule>
 
   <IfModule mod_mime.c>
-    AddType audio/mp4                                   m4a f4a f4b
-    AddType audio/ogg                                   oga ogg
-
-    AddType application/javascript                      js jsonp
-    AddType application/json                            json
-
-    AddType video/mp4                                   mp4 m4v f4v f4p
-    AddType video/ogg                                   ogv
-    AddType video/webm                                  webm
-    AddType video/x-flv                                 flv
-
-    AddType application/font-woff                       woff
-    AddType application/vnd.ms-fontobject               eot
-
-    AddType application/x-font-ttf                      ttc ttf
-    AddType font/opentype                               otf
-
-    AddType     image/svg+xml                           svg svgz
-    AddEncoding gzip                                    svgz
-
-    AddType application/octet-stream                    safariextz
-    AddType application/x-chrome-extension              crx
-    AddType application/x-opera-extension               oex
-    AddType application/x-shockwave-flash               swf
-    AddType application/x-web-app-manifest+json         webapp
-    AddType application/x-xpinstall                     xpi
-    AddType application/xml                             atom rdf rss xml
-    AddType image/webp                                  webp
-    AddType image/x-icon                                ico
-    AddType text/cache-manifest                         appcache manifest
-    AddType text/vtt                                    vtt
-    AddType text/x-component                            htc
-    AddType text/x-vcard                                vcf
-
+    AddType audio/mp4                            m4a f4a f4b
+    AddType audio/ogg                            oga ogg
+    AddType application/javascript               js jsonp
+    AddType application/json                     json
+    AddType video/mp4                            mp4 m4v f4v f4p
+    AddType video/ogg                            ogv
+    AddType video/webm                           webm
+    AddType video/x-flv                          flv
+    AddType application/font-woff                woff
+    AddType application/vnd.ms-fontobject        eot
+    AddType application/x-font-ttf               ttc ttf
+    AddType font/opentype                        otf
+    AddType image/svg+xml                        svg svgz
+    AddEncoding gzip                             svgz
+    AddType application/octet-stream             safariextz
+    AddType application/x-chrome-extension       crx
+    AddType application/x-opera-extension        oex
+    AddType application/x-shockwave-flash        swf
+    AddType application/x-web-app-manifest+json  webapp
+    AddType application/x-xpinstall              xpi
+    AddType application/xml                      atom rdf rss xml
+    AddType image/webp                           webp
+    AddType image/x-icon                         ico
+    AddType text/cache-manifest                  appcache manifest
+    AddType text/vtt                             vtt
+    AddType text/x-component                     htc
+    AddType text/x-vcard                         vcf
   </IfModule>
 
 AddDefaultCharset utf-8
   <IfModule mod_mime.c>
     AddCharset utf-8 .atom .css .js .json .rss .vtt .webapp .xml
   </IfModule>
-
     <IfModule mod_deflate.c>
-
     <IfModule mod_setenvif.c>
       <IfModule mod_headers.c>
         SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+|[X~-]{4,13}$ HAVE_Accept-Encoding
         RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
       </IfModule>
     </IfModule>
-
     <IfModule mod_filter.c>
       AddOutputFilterByType DEFLATE application/atom+xml \
                                     application/javascript \
@@ -120,7 +113,6 @@ AddDefaultCharset utf-8
                                     text/x-component \
                                     text/xml
     </IfModule>
-
   </IfModule>
 
   <IfModule mod_headers.c>

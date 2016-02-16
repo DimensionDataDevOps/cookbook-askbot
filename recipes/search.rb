@@ -11,7 +11,7 @@
 include_recipe 'solr'
 include_recipe 'python::pip'
 
-%w{ python-dev postgresql-server-dev-9.1 libldap2-dev libsasl2-dev memcached libxml2-dev libxslt-dev }.each do |pkg|
+node['askbot']['solr'['packages'].each do |pkg|
   package pkg
 end
 
@@ -29,7 +29,7 @@ if node['solr']['enabled']
   #    action :install
 	#  end
   #end
-  %w{pysolr lxml cssselect}.each do |pip|
+  ['pysolr', 'lxml', 'cssselect'].each do |pip|
     python_pip pip do
       action :install
     end
@@ -69,7 +69,7 @@ end
 if node['haystack']['enabled']
   # Install django-haystack 2.1.0 (default)
     python_pip "django-haystack" do
-      version  "2.1.0"
+      #version  "2.1.0"
       action :install
     end
 end

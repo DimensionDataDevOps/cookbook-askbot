@@ -8,46 +8,21 @@
 # All rights reserved - Do Not Redistribute
 #
 
-#include_recipe 'apt'
+include_recipe 'askbot'
 include_recipe 'git'
 include_recipe 'apache2'
 include_recipe 'python::package'
-#include_recipe 'python::pip'
+include_recipe 'python::pip'
 
 %w{ python-dev postgresql-server-dev-9.3 libldap2-dev libsasl2-dev memcached libxml2-dev libxslt-dev python-pip libjpeg8-dev}.each do |pkg|
   package pkg
 end
 
-# Include and 'longerusername'
-{"psycopg2" => "2.5.1", "python-ldap" => "2.4.13", "python-memcached" => "1.53"}.each do |pip,ver|
+node['askbot']['pip']['packages'].each do |pip,ver|
   python_pip pip do
     version ver
     action :install
   end
-end
-
-directory node['askbot']['install']['dir'] do
-  mode 0775
-  owner "root"
-  group "root"
-  action :create
-end
-
-%w{askbot askbot/upfiles log }.each do |dir|
-  directory "#{node['askbot']['install']['dir']}/#{dir}" do
-    owner "root"
-    group "root"
-    mode "1775"
-    action :create
-    recursive true
-  end
-end
-
-file "#{node['askbot']['install']['dir']}/log/askbot.log" do
-  owner 'root'
-  group 'root'
-  mode '0666'
-  action :create
 end
 
 deploy node['askbot']['git']['dir'] do
@@ -58,22 +33,67 @@ deploy node['askbot']['git']['dir'] do
   create_dirs_before_symlink.clear
   purge_before_symlink.clear
   symlinks.clear
+
+  before_restart do
+
+    [node['askbot']['install']['dir'],
+    "#{node['askbot']['install']['dir']}/log",
+    "#{node['askbot']['install']['dir']}/askbot",
+    "#{node['askbot']['install']['dir']}/askbot/upfiles"].each do |dir|
+      directory dir do
+        owner 'www-data'
+        group 'www-data'
+        mode 1777
+        action :create
+        recursive true
+      end
+    end
+
+    file "#{node['askbot']['install']['dir']}/log/askbot.log" do
+      owner 'www-data'
+      group 'www-data'
+      mode 1777
+      action :create
+    end
+
+    execute 'python install' do
+     cwd release_path
+     command "python setup.py install"
+     action :run
+    end
+    
+    execute 'askbot install' do
+     command "askbot-setup -v 2 -n #{node['askbot']['install']['dir']} -e 1 --force"
+     user 'www-data'
+     group 'www-data'
+     action :run
+     not_if {::File.exists?("#{node['askbot']['install']['dir']}/settings.py")}
+    end
+
+    template "#{node['askbot']['install']['dir']}/settings.py" do
+      source 'settings.py.erb'
+      variables({
+        :ADMIN_NAME => node['askbot']['admin_name']
+        :ADMIN_EMAIL => node['askbot']['admins_email']
+        :DB_NAME => node['askbot']['db']['name']
+        :DB_USR => node['askbot']['db']['user']
+        :DB_PASSWD => 
+        :DB_HOST =>
+        :DB_PORT =>
+        :SMTP_EMAIL =>
+        :SMTP_FRMAIL => node['askbot']['from_email']
+      })
+    end
+
+    ['syncdb', 'collectstatic'].each do |run|
+      execute "run #{run}" do
+        cwd node['askbot']['install']['dir']
+        command "python manage.py #{run} --noinput"
+        action :run
+      end
+    end
+  end
 end
-
-#   before_restart do
-#     execute "python install" do
-#       cwd release_path
-#       command "python setup.py install"
-#       action :run
-#     end
-
-#     execute "askbot install" do
-#       command "askbot-setup -v 2 -n #{node['askbot']['install']['dir']} -e 1 --force"
-#       user "root"
-#       group "root"
-#       action :run
-#       not_if { ::File.exists?("#{node['askbot']['install']['dir']}/settings.py")}
-#     end
 
 #     template "#{node['askbot']['install']['dir']}/settings.py" do
 #       source "settings.py.erb"
@@ -81,14 +101,6 @@ end
 #       group "root"
 #       mode "0644"
 #     end 
-
-#     %w{ syncdb collectstatic }.each do |run|
-#       execute "run #{run}" do
-#         cwd node['askbot']['install']['dir']
-#         command "python manage.py #{run} --noinput"
-#         action :run
-#       end
-#     end
 
 #     %w{ askbot django_authopenid robots longerusername djcelery group_messaging askbot.deps.django_authopenid }.each do |migrate|
 #       execute "migrate #{migrate}" do
