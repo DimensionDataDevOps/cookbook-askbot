@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+pip_pkg = node['askbot']['solr']['pip_pkgs']
+
 # Install only if haystack is set to true
 unless !node['askbot']['haystack']['enabled'].nil?
   include_recipe 'askbot'
@@ -33,7 +35,7 @@ unless !node['askbot']['haystack']['enabled'].nil?
     package pkg
   end
 
-  node['askbot']['solr']['pip_pkgs'].each do |pip,ver|
+  pip_pkg.each do |pip,ver|
     python_pip pip do
       version ver
       action :install
@@ -68,3 +70,4 @@ unless !node['askbot']['haystack']['enabled'].nil?
     to "#{solr_home}/conf/stopwords.txt"
     #notifies :restart, "solr_instance[#{solr_instance_name}]", :immediately
   end
+end
