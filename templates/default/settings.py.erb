@@ -164,11 +164,6 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.sitemaps',
     'django.contrib.messages',
-    #'debug_toolbar',
-    #Optional, to enable haystack search
-    <% if !@node['askbot']['haystack']['enabled'].nil? %>
-    'haystack',
-    <% end %>
     'compressor',
     'askbot',
     'askbot.deps.django_authopenid',
@@ -260,21 +255,6 @@ STATICFILES_FINDERS = (
 )
 
 NOCAPTCHA = True
-<% if !@node['askbot']['haystack']['enabled'].nil? %>
-#HAYSTACK_SETTINGS
-ENABLE_HAYSTACK_SEARCH = True
-#Uncomment for multilingual setup:
-#HAYSTACK_ROUTERS = ['askbot.search.haystack.routers.LanguageRouter',]
-
-#Uncomment if you use haystack
-#More info in http://django-haystack.readthedocs.org/en/latest/settings.html
-HAYSTACK_CONNECTIONS = {
-  'default': {
-    'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
-    'URL': 'http://<%= node['askbot']['solr']['serverip'] %>:<%= node['askbot']['solr']['port'] %>/solr'
-  }
-}
-<% end %>
 
 TINYMCE_COMPRESSOR = True
 TINYMCE_SPELLCHECKER = False
@@ -370,13 +350,6 @@ LIVESETTINGS_OPTIONS = {
       'FORUM_DATA_RULES': {
         'ALLOW_ASK_ANONYMOUSLY': False
       },
-<% if !@node['askbot']['mathjax']['enabled'].nil? %>
-      'MARKUP': {
-        'MARKUP_CODE_FRIENDLY': True,
-        'ENABLE_MATHJAX': True,
-        'MATHJAX_BASE_URL': '/m/mathjax'
-      },
-<% end %>
     }
   }
 }

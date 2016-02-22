@@ -27,8 +27,6 @@ suites:
     - recipe[askbot::pgsql_install]
     - recipe[askbot::deploy]
     - recipe[askbot::web]
-    #- recipe[askbot::search]
-    #- recipe[askbot::mathjax]
   attributes:
   excludes:
     - centos-6.6
