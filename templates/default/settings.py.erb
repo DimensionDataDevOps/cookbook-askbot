@@ -1,76 +1,72 @@
 ## Django settings for ASKBOT enabled project.
 import os.path
 import logging
-import sys
 import askbot
 import site
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 #this line is added so that we can import pre-packaged askbot dependencies
 ASKBOT_ROOT = os.path.abspath(os.path.dirname(askbot.__file__))
 site.addsitedir(os.path.join(ASKBOT_ROOT, 'deps'))
 
-<% if @node['chef_environment'] == "askbot_production" -%>
+<% if /prod/.match(node['chef_environment']) %>
 DEBUG = False
-<% else -%>
+<% else %>
 DEBUG = True
-<% end -%>
+<% end %>
 
-TEMPLATE_DEBUG = False#keep false when debugging jinja2 templates
-
+TEMPLATE_DEBUG = False  # keep false when debugging jinja2 templates
 INTERNAL_IPS = ('<%= node['ipaddress'] %>',)
+ALLOWED_HOSTS = ['*',]#change this for better security on your site
 
 ADMINS = (
-  ('askbot', 'askbot@noemail.com'),
+  ('<%= @ADMIN_NAME %>', '<%= @ADMIN_EMAIL %>'),
 )
 
 MANAGERS = ADMINS
 
 DATABASES = {
   'default': {
-    'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-    'NAME': '<%= node['askbot']['db']['name'] %>',        # Or path to database file if using sqlite3.
-    'USER': '<%= node['askbot']['db']['user'] %>',        # Not used with sqlite3.
-    'PASSWORD': '<%= node['askbot']['db']['passwd'] %>',  # Not used with sqlite3.
-    'HOST': '<%= node['askbot']['db']['host'] %>',        # Set to empty string for localhost. Not used with sqlite3.
-    'PORT': '<%= node['askbot']['db']['port'] %>',        # Set to empty string for default. Not used with sqlite3.
-    'TEST_CHARSET': 'utf8',                                 # Setting the character set and collation to utf-8
-    'TEST_COLLATION': 'utf8_general_ci',                    # is necessary for MySQL tests to work properly.
+    'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    'NAME': '<%= @DB_NAME %>',
+    'USER': '<%= @DB_USR %>',
+    'PASSWORD': '<%= @DB_PASSWD %>',
+    'HOST': '<%= @DB_HOST %>',
+    'PORT': '<%= @DB_PORT %>',
+    'TEST_CHARSET': 'utf8',
+    'TEST_COLLATION': 'utf8_general_ci',
   }
 }
 
 #outgoing mail server settings
-SERVER_EMAIL = '<%= node['askbot']['fremail'] %>'
-DEFAULT_FROM_EMAIL = '<%= node['askbot']['fremail'] %>'
+SERVER_EMAIL = '<%= @ADMIN_NAME %>'
+DEFAULT_FROM_EMAIL = '<%= @ADMIN_EMAIL %>'
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
-<% if @node['chef_environment'] == "askbot_production" -%>
-EMAIL_SUBJECT_PREFIX = 'askbot:'
+<% if /prod/.match(node['askbot']['environment']) %>
+EMAIL_SUBJECT_PREFIX = 'AskBot:'
 EMAIL_HOST='<%= node['askbot']['smtp'] %>'
 EMAIL_PORT='25'
-<% else -%>
-EMAIL_SUBJECT_PREFIX = '<%= node['chef_environment'] %> askbot:'
+<% else %>
+# Run '$python -m smtpd -n -c DebuggingServer localhost:1025' in a tmux to test
+EMAIL_SUBJECT_PREFIX = '<%= node['chef_environment'] %> AskBot_Test:'
 EMAIL_HOST='localhost'
 EMAIL_PORT='1025'
-<% end -%>
-EMAIL_USE_TLS= False
+<% end %>
+EMAIL_USE_TLS=False
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-#incoming mail settings
-IMAP_HOST = ''
-IMAP_HOST_USER = ''
-IMAP_HOST_PASSWORD = ''
-IMAP_PORT = ''
-IMAP_USE_TLS = False
-
-#timezone
 TIME_ZONE = 'America/Los_Angeles'
 
-#site id
 SITE_ID = 1
 
-#Localization
+# If you set this to False, Django will make some optimizations so as not
+# to load the internationalization machinery.
 USE_I18N = True
-LANGUAGE_CODE = 'en_qcom'
+LANGUAGE_CODE = 'en'
+LANGUAGES = (('en', 'English'),)
+ASKBOT_LANGUAGE_MODE = 'single-lang' #'single-lang', 'url-lang', 'user-lang'
 
 # Absolute path to the directory that holds uploaded media
 # Example: "/home/media/media.lawrence.com/"
@@ -91,20 +87,30 @@ ADMIN_MEDIA_PREFIX = STATIC_URL + 'admin/'
 <% unique_key = SecureRandom.hex %>
 SECRET_KEY = '<%= unique_key %>'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'askbot.skins.loaders.Loader',
-    'django.template.loaders.app_directories.Loader',
-    'django.template.loaders.filesystem.Loader',
-    #'django.template.loaders.eggs.load_template_source',
+TEMPLATES = (
+    {
+        'BACKEND': 'askbot.skins.template_backends.AskbotSkinTemplates',
+    },
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.core.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+            ]
+        }
+    },
 )
-
 
 MIDDLEWARE_CLASSES = (
     #'django.middleware.gzip.GZipMiddleware',
-    #'askbot.middleware.locale.LocaleMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    ## Enable the following middleware if you want to enable
+    ## language selection in the site settings.
+    #'askbot.middleware.locale.LocaleMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
@@ -115,12 +121,13 @@ MIDDLEWARE_CLASSES = (
     'askbot.middleware.anon_user.ConnectToSessionMessagesMiddleware',
     'askbot.middleware.forum_mode.ForumModeMiddleware',
     'askbot.middleware.cancel.CancelActionMiddleware',
-    'django.middleware.transaction.TransactionMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
     'askbot.middleware.view_log.ViewLogMiddleware',
     'askbot.middleware.spaceless.SpacelessMiddleware',
+    'askbot.middleware.csrf.CsrfViewMiddleware',
 )
 
+ATOMIC_REQUESTS = True
 
 ROOT_URLCONF = os.path.basename(os.path.dirname(__file__)) + '.urls'
 
@@ -144,18 +151,8 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 #ASKBOT_EXTRA_SKINS_DIR = #path to your private skin collection
 #take a look here http://askbot.org/en/question/207/
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.request',
-    'askbot.context.application_settings',
-    #'django.core.context_processors.i18n',
-    'askbot.user_messages.context_processors.user_messages',#must be before auth
-    'django.contrib.auth.context_processors.auth', #this is required for the admin app
-    'django.core.context_processors.csrf', #necessary for csrf protection
-)
-
 
 INSTALLED_APPS = (
-    'longerusername',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -167,14 +164,10 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.sitemaps',
     'django.contrib.messages',
-    #'debug_toolbar',
-    #Optional, to enable haystack search
-    #'haystack',
     'compressor',
     'askbot',
     'askbot.deps.django_authopenid',
     #'askbot.importers.stackexchange', #se loader
-    'south',
     'askbot.deps.livesettings',
     'keyedcache',
     'robots',
@@ -183,23 +176,32 @@ INSTALLED_APPS = (
     'djkombu',
     'followit',
     'tinymce',
-    'group_messaging',
+    'askbot.deps.group_messaging',
     #'avatar',#experimental use git clone git://github.com/ericflo/django-avatar.git$
+    'captcha',
+    'avatar',
 )
 
-ROBOTS_USE_SITEMAP = False
 
 #setup memcached for production use!
-#see http'//docs.djangoproject.com/en/1.1/topics/cache/ for details
-CACHE_BACKEND = 'memcached://127.0.0.1:11211/'
-#needed for django-keyedcache
-CACHE_TIMEOUT = 6000
+# See http://docs.djangoproject.com/en/1.9/topics/cache/ for details.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': '<%= @MEMCACHE_HOST %>',
+        'TIMEOUT': 6000,
+        # Chose a unique KEY_PREFIX to avoid clashes with other applications
+        # using the same cache (e.g. a shared memcache instance).
+        'KEY_PREFIX': 'askbot',
+    }
+}
+
 #sets a special timeout for livesettings if you want to make them different
-LIVESETTINGS_CACHE_TIMEOUT = CACHE_TIMEOUT
-CACHE_PREFIX = '<%= node['fqdn'] %>' #make this unique
+LIVESETTINGS_CACHE_TIMEOUT = CACHES['default']['TIMEOUT']
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
+CACHE_MIDDLEWARE_SECONDS = 600
 #If you use memcache you may want to uncomment the following line to enable memcached based sessions
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+#SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -252,12 +254,12 @@ STATICFILES_FINDERS = (
     'compressor.finders.CompressorFinder',
 )
 
-RECAPTCHA_USE_SSL = True
+NOCAPTCHA = True
 
 TINYMCE_COMPRESSOR = True
 TINYMCE_SPELLCHECKER = False
-TINYMCE_JS_ROOT = os.path.join(STATIC_ROOT, 'default/media/js/tinymce/')
-#TINYMCE_JS_URL = STATIC_URL + 'default/media/js/tinymce/tiny_mce.js'
+TINYMCE_JS_ROOT = os.path.join(STATIC_ROOT, 'default/media/tinymce/')
+#TINYMCE_JS_URL = STATIC_URL + 'default/media/tinymce/tiny_mce.js'
 TINYMCE_DEFAULT_CONFIG = {
     'plugins': 'askbot_imageuploader,askbot_attachment',
     'convert_urls': False,
@@ -299,11 +301,55 @@ if 'ASKBOT_CSS_DEVEL' in locals() and ASKBOT_CSS_DEVEL == True:
 COMPRESS_JS_FILTERS = []
 COMPRESS_PARSER = 'compressor.parser.HtmlParser'
 JINJA2_EXTENSIONS = ('compressor.contrib.jinja2ext.CompressorExtension',)
+JINJA2_TEMPLATES = ('captcha',)
 
 # Use syncdb for tests instead of South migrations. Without this, some tests
 # fail spuriously in MySQL.
 SOUTH_TESTS_MIGRATE = False
 
-ASKBOT_USE_LOCAL_FONTS = True
+VERIFIER_EXPIRE_DAYS = 3
+AVATAR_AUTO_GENERATE_SIZES = (16, 32, 48, 128) #change if avatars are sized differently
 
-LIVESETTINGS_OPTIONS = {}
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
+LIVESETTINGS_OPTIONS = {
+  1: {
+    'DB': True,
+    'SETTINGS': {
+      'EMAIL': {
+        'REPLY_BY_EMAIL': False
+      },
+      'USER_SETTINGS': {
+        'ALLOW_ANONYMOUS_FEEDBACK': False,
+        'EDITABLE_SCREEN_NAME': False,
+        'EDITABLE_EMAIL': False,
+        'ALLOW_EMAIL_ADDRESS_IN_USERNAME': False,
+        'ALLOW_ACCOUNT_RECOVERY_BY_EMAIL': False
+      },
+      'LOGIN_PROVIDERS': {
+        'PASSWORD_REGISTER_SHOW_PROVIDER_BUTTONS': False,
+      },
+      'SOCIAL_SHARING': {
+        'ENABLE_SHARING_TWITTER': False,
+        'ENABLE_SHARING_FACEBOOK': False,
+        'ENABLE_SHARING_IDENTICA': False,
+        'ENABLE_SHARING_GOOGLE': False,
+        'ENABLE_SHARING_IDENTICA': False,
+        'ENABLE_SHARING_LINKEDIN': False
+      },
+      'EMAIL': {
+        'SELF_NOTIFY_EMAILED_POST_AUTHOR_WHEN': 'any',
+        'DEFAULT_NOTIFICATION_DELIVERY_SCHEDULE_Q_ALL': 'w',
+        'DEFAULT_NOTIFICATION_DELIVERY_SCHEDULE_Q_ANS': 'd',
+        'ENABLE_UNANSWERED_REMINDERS': True,
+        'REPLY_BY_EMAIL_HOSTNAME': 'qualcomm.com'
+      },
+      'USER_SETTINGS': {
+        'ALLOW_ADD_REMOVE_LOGIN_METHODS': False
+      },
+      'FORUM_DATA_RULES': {
+        'ALLOW_ASK_ANONYMOUSLY': False
+      },
+    }
+  }
+}

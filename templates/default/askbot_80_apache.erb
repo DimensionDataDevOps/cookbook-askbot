@@ -1,10 +1,10 @@
 <VirtualHost *:80>
   ServerAdmin admin@domain.com
-	ServerName <%= node['fqdn'] %>
-	#Redirect permanent / https://<%= @node[:fqdn] %>/
-	DocumentRoot /var/www/
-	RewriteEngine on
-	RewriteCond %{REQUEST_URI} !^/robots\.txt [NC]
-	RewriteCond %{REQUEST_URI} !^/favicon\.ico [NC]
-	RewriteRule ^(.*)$ https://<%= @node[:fqdn] %>/$1 [R=301,L]
+  ServerName <%= node['fqdn'] %>
+  DocumentRoot /var/www/
+  RewriteEngine on
+  RewriteCond %{REQUEST_URI} !^/robots\.txt [NC]
+  RewriteCond %{REQUEST_URI} !^/favicon\.ico [NC]
+  RewriteRule ^(.*)$ https://<%= @node['ipaddress'] %>/$1 [R=301,L]
+  #RewriteRule ^(.*)$ https://<%= @node[:fqdn] %>/$1 [R=301,L]
 </VirtualHost>
