@@ -20,6 +20,7 @@
 # Might have to switch this to a case loop to support platform_family? = rhel
 unless !node['platform_family'] == 'debian'
   node.override['apt']['compile_time_update'] = true 
+
   include_recipe 'apt'
 end
 

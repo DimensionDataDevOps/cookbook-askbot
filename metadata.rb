@@ -8,21 +8,6 @@ version          '0.1.0'
 
 supports         'ubuntu'
 
-# depends          'python', '~> 1.4.6'
-# depends          'git', '~> 4.3.7'
-# depends          'postgresql', '~> 4.0.0'
-# depends          'apache2', '~> 3.1.0'
-# depends          'logrotate', '~> 1.9.2'
-# depends          'java', '~> 1.39.0'
-# depends          'ark', '~> 1.0.0'
-# depends          'database', '~> 4.0.9'
-# depends          'solr', '~> 0.5.0'
-# depends          'chef-vault', '~> 1.3.2'
-# depends          'yum', '~> 3.10.0'
-# depends          'apt', '~> 2.9.2'
-# depends          'didata-base'
-
-
 depends 'python'
 depends 'git'
 depends 'postgresql'

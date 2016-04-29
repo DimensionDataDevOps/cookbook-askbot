@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 
+include_recipe 'askbot'
 include_recipe 'apache2'
 include_recipe 'apache2::mod_wsgi'
 include_recipe 'apache2::mod_ssl'
