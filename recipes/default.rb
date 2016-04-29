@@ -1,27 +1,33 @@
 #
 # Cookbook Name:: askbot
 # Recipe:: default
-# Author:: Eugene Narciso (<eugene.narciso@itaas.dimensiondata.com>)
 #
-# Copyright 2016, Dimension Data Cloud Buisness Unit
+# Copyright 2016, Dimension Data Cloud Solutions, Inc.
 #
-# All rights reserved - Do Not Redistribute
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 
-# Repo override
-node.override['askbot']['git']['repository'] = "https://github.com/askbot/askbot-devel.git"
-node.override['askbot']['git']['revision'] = "develop"
+# Might have to switch this to a case loop to support platform_family? = rhel
+unless !node['platform_family'] == 'debian'
+  node.override['apt']['compile_time_update'] = true 
 
-# solr ver override
-node.override['solr']['version'] = '3.6.2'
-node.override['solr']['checksum'] = "537426dcbdd0dc82dd5bf16b48b6bcaf87cb4049c1245eea8dcb79eeaf3e7ac6"
-node.override['solr']['url'] = "http://162.216.171.221/solr/#{node['solr']['version']}/apache-solr-#{node['solr']['version']}.tgz"
+  include_recipe 'apt'
+end
 
-# MathJax overrides
-node.override['mathjax']['git']['repository'] = 'git@github.com:mathjax/MathJax.git'
-node.override['mathjax']['git']['revision'] = 'master'
+include_recipe 'chef-vault'
 
-# Enable features
-node.set['solr']['enabled'] = true
-node.set['haystack']['enabled'] = true
-node.set['mathjax']['enabled'] = true
+chef_gem 'chef-vault'
+require 'chef-vault'
+
+node.set['askbot']['db']['pgsql_passwd'] = chef_vault_item(node['askbot']['db']['data_bag'], 'postgresql')['passwordclear']
+node.set['askbot']['db']['askbot_passwd'] = chef_vault_item(node['askbot']['db']['data_bag'], node['askbot']['db']['db_item'])['passwordclear']
