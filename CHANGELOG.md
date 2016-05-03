@@ -1,8 +1,7 @@
 # Change Log
 
-## [Unreleased](https://github.com/DimensionDataDevOps/cookbook-askbot/tree/HEAD)
-
-[Full Changelog](https://github.com/DimensionDataDevOps/cookbook-askbot/compare/1.0.0...HEAD)
+## [1.1.0](https://github.com/DimensionDataDevOps/cookbook-askbot/tree/1.1.0) (2016-05-03)
+[Full Changelog](https://github.com/DimensionDataDevOps/cookbook-askbot/compare/1.0.0...1.1.0)
 
 **Merged pull requests:**
 
