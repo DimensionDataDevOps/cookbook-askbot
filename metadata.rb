@@ -4,7 +4,7 @@ maintainer_email 'eugene.narciso@itaas.dimensiondata.com'
 license          'All Rights Reserved'
 description      'Installs/Configures Q&A system askbot'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          '1.0.0'
+version          '1.1.0'
 
 supports         'ubuntu'
 

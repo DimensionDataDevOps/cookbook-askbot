@@ -2,6 +2,13 @@
 
 ## [Unreleased](https://github.com/DimensionDataDevOps/cookbook-askbot/tree/HEAD)
 
+[Full Changelog](https://github.com/DimensionDataDevOps/cookbook-askbot/compare/1.0.0...HEAD)
+
+**Merged pull requests:**
+
+- minor clean up and reagrragements and add elasticsearch recipe for se… [\#2](https://github.com/DimensionDataDevOps/cookbook-askbot/pull/2) ([enarciso](https://github.com/enarciso))
+
+## [1.0.0](https://github.com/DimensionDataDevOps/cookbook-askbot/tree/1.0.0) (2016-04-29)
 **Merged pull requests:**
 
 - Feature/refactor [\#1](https://github.com/DimensionDataDevOps/cookbook-askbot/pull/1) ([enarciso](https://github.com/enarciso))
