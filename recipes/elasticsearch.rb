@@ -20,8 +20,10 @@
 include_recipe 'chef-sugar'
 include_recipe 'python::pip'
 
-python_pip 'django-haystack' do
-  action :install
+['django-haystack', 'elasticsearch'].each do |pip_pkg|
+  python_pip pip_pkg do
+    action :install
+  end
 end
 
 elasticsearch_user 'elasticsearch'
