@@ -45,15 +45,3 @@ default['askbot']['git']['revision'] = 'master'
 
 # Defines install dir; depends on environment ( dev/prod). Default 'testing'
 default['askbot']['install']['dir'] = "/srv/#{node['askbot']['environment']}"
-
-# Postgresql values
-default['askbot']['db']['name'] = 'askbotdb'
-default['askbot']['db']['user'] = 'askbotusr'
-default['askbot']['db']['host'] = node['ipaddress']
-default['askbot']['db']['port'] = 5432
-default['askbot']['db']['askbot_passwd'] = nil
-default['askbot']['db']['pgsql_passwd'] = nil
-
-# Default Chef-Vault to retrieve Data Base creds
-default['askbot']['db']['data_bag'] = node['askbot']['db']['name']
-default['askbot']['db']['db_item'] = node['askbot']['db']['user']
