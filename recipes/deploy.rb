@@ -92,7 +92,9 @@ deploy node['askbot']['git']['dir'] do
         :SMTP_HOST => node['askbot']['smtp']['host'],
         :SMTP_USR => node['askbot']['smtp']['user'],
         :SMTP_PASSWD => node['askbot']['smtp']['passwd'],
-        :MEMCACHE_HOST => node['askbot']['memcache']['host']
+        :MEMCACHE_HOST => node['askbot']['memcache']['host'],
+        :ES_HOST => node['askbot']['elasticsearch']['hosts'],
+        :ES_PORT => node['askbot']['elasticsearch']['port']
       })
     end
 
@@ -103,55 +105,38 @@ deploy node['askbot']['git']['dir'] do
         action :run
       end
     end
+
+    %w{ askbot django_authopenid robots djcelery group_messaging }.each do |migrate|
+      execute "migrate #{migrate}" do
+        cwd node['askbot']['install']['dir']
+        command "python manage.py migrate #{migrate} --noinput"
+        action :run
+      end
+    end
   end
 end
 
-#     template "#{node['askbot']['install']['dir']}/settings.py" do
-#       source "settings.py.erb"
-#       owner "root"
-#       group "root"
-#       mode "0644"
-#     end 
+if node.recipe?('askbot::elasticsearch')
+  execute "rebuild_index" do
+    cwd node['askbot']['install']['dir']
+    command "python manage.py rebuild_index --noinput"
+    action :run
+    only_if { ::File.exists?("/opt/solr/#{node['askbot']['environment']}/conf") }
+  end
 
-#     %w{ askbot django_authopenid robots longerusername djcelery group_messaging askbot.deps.django_authopenid }.each do |migrate|
-#       execute "migrate #{migrate}" do
-#         cwd node['askbot']['install']['dir']
-#         command "python manage.py migrate #{migrate} --noinput"
-#         action :run
-#       end
-#     end
+  cron "haystack_update_index" do
+    minute "*/3"
+    action :create
+    command "/usr/bin/python #{node['askbot']['install']['dir']}/manage.py update_index > /dev/null 2>&1"
+    only_if { ::File.exists?("#{node['askbot']['install']['dir']}/manage.py")}
+  end
+end
 
-#     # if node['solr']['enabled']
-#     #   execute "build_solr_schema" do
-#     #     cwd node['askbot']['install']['dir']
-#     #     command "python manage.py build_solr_schema -f /opt/solr/#{node['askbot']['environment']}/conf/schema.xml"
-#     #     action :run
-#     #     only_if { ::File.exists?("/opt/solr/#{node['askbot']['environment']}/conf") }
-#     #   end
-#     # end
- 
-#     # if node['haystack']['enabled']
-#     #   execute "rebuild_index" do
-#     #     cwd node['askbot']['install']['dir']
-#     #     command "python manage.py rebuild_index --noinput"
-#     #     action :run
-#     #     only_if { ::File.exists?("/opt/solr/#{node['askbot']['environment']}/conf") }
-#     #   end
-
-#     #   cron "haystack_update_index" do
-#     #     minute "*/3"
-#     #     action :create
-#     #     command "/usr/bin/python #{node['askbot']['install']['dir']}/manage.py update_index > /dev/null 2>&1"
-#     #     only_if { ::File.exists?("#{node['askbot']['install']['dir']}/manage.py")}
-#     #   end
-#     #end
-
-#     logrotate_app "askbot" do
-#       cookbook "logrotate"
-#       path "#{node['askbot']['install']['dir']}/log/*.log"
-#       frequency "daily"
-#       rotate 14
-#       create "664 root root"
-#     end
-#   end
-# end
+# Set logrotate
+logrotate_app "askbot" do
+  cookbook "logrotate"
+  path "#{node['askbot']['install']['dir']}/log/*.log"
+  frequency "daily"
+  rotate 14
+  create "664 root root"
+end
